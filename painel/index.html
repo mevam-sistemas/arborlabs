@@ -52,7 +52,11 @@
   <h1>Painel Central — Arbor Labs</h1>
   <p>Acesso restrito. Entre com o e-mail cadastrado.</p>
   <input type="email" id="gateEmail" placeholder="seu e-mail" style="margin-bottom:10px">
-  <button class="btn-primary" id="gateBtn" style="width:100%">Enviar link de acesso</button>
+  <button class="btn-primary" id="gateBtn" style="width:100%">Enviar código de acesso</button>
+  <div id="gateCodeBox" class="hide" style="margin-top:14px">
+    <input type="text" id="gateCode" placeholder="código recebido por e-mail" inputmode="numeric" autocomplete="one-time-code" style="margin-bottom:10px">
+    <button class="btn-primary" id="gateCodeBtn" style="width:100%">Confirmar código</button>
+  </div>
   <div class="msg" id="gateMsg"></div>
 </div>
 
@@ -189,10 +193,30 @@ document.getElementById('gateBtn').addEventListener('click', async () => {
   const btn = document.getElementById('gateBtn');
   btn.disabled = true; btn.textContent = 'Enviando…';
   const { error } = await sbPublic.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin } });
-  btn.disabled = false; btn.textContent = 'Enviar link de acesso';
+  btn.disabled = false; btn.textContent = 'Enviar código de acesso';
   if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
-  gateMsg.textContent = 'Link enviado — confira seu e-mail.';
+  document.getElementById('gateCodeBox').classList.remove('hide');
+  document.getElementById('gateEmail').disabled = true;
+  gateMsg.textContent = 'Enviamos um código pro seu e-mail — cole ele acima e confirme (ou clique no link, se preferir).';
   gateMsg.className = 'msg ok';
+  document.getElementById('gateCode').focus();
+});
+
+document.getElementById('gateCodeBtn').addEventListener('click', async () => {
+  const email = document.getElementById('gateEmail').value.trim();
+  const token = document.getElementById('gateCode').value.trim();
+  if(!email || !token){ return; }
+  const btn = document.getElementById('gateCodeBtn');
+  btn.disabled = true; btn.textContent = 'Confirmando…';
+  const { error } = await sbPublic.auth.verifyOtp({ email, token, type: 'email' });
+  btn.disabled = false; btn.textContent = 'Confirmar código';
+  if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
+  gateMsg.textContent = '';
+  // onAuthStateChange cuida de esconder o gate e mostrar o painel
+});
+
+document.getElementById('gateCode').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ document.getElementById('gateCodeBtn').click(); }
 });
 
 async function carregarModox(){
