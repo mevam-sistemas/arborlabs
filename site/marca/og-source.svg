@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glow" cx="30%" cy="20%" r="75%">
+      <stop offset="0%" stop-color="#F26A1B" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#F26A1B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#0F0D0A"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g transform="translate(96,150) scale(2.7)">
+    <g fill="none" stroke="#F26A1B" stroke-width="3.6" stroke-linecap="round">
+      <path d="M32 60V37"/>
+      <path d="M32 37 15 25"/><path d="M32 37 49 25"/>
+      <path d="M15 25 8 11"/><path d="M15 25 23 11"/>
+      <path d="M49 25 56 11"/><path d="M49 25 41 11"/>
+    </g>
+    <g fill="#F26A1B">
+      <circle cx="32" cy="60" r="4.4"/><circle cx="32" cy="37" r="4"/>
+      <circle cx="15" cy="25" r="4"/><circle cx="49" cy="25" r="4"/>
+      <circle cx="8"  cy="10.5" r="3.4"/><circle cx="23" cy="10.5" r="3.4"/>
+      <circle cx="41" cy="10.5" r="3.4"/><circle cx="56" cy="10.5" r="3.4"/>
+    </g>
+  </g>
+  <text x="96" y="400" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" letter-spacing="-2" fill="#EDEBE7">ARBOR <tspan fill="#F26A1B">LABS</tspan></text>
+  <text x="98" y="450" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="600" fill="#A8A49C">Desenvolvedora de software brasileira</text>
+  <text x="98" y="492" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="500" fill="#8E8A82">Produtos próprios + software sob medida para terceiros</text>
+</svg>

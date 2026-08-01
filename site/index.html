@@ -3,12 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Arbor Labs — estúdio brasileiro de produtos digitais</title>
-<meta name="description" content="Estúdio brasileiro que constrói produtos digitais próprios e para clientes: software sob medida, plataformas e inteligência artificial aplicada. Mantenedora do MODOX e do MuralPlay.">
+<title>Arbor Labs — desenvolvedora de software: produtos próprios e sob medida</title>
+<meta name="description" content="Arbor Labs é uma desenvolvedora de software brasileira especialista em produtos próprios (MODOX, MuralPlay, 360social) e em desenvolvimento de software sob medida para empresas e instituições. Sistemas, plataformas e inteligência artificial aplicada.">
+<meta name="keywords" content="desenvolvedora de software, desenvolvimento de software sob medida, fábrica de software, software house, criação de sistemas, desenvolvimento de aplicativos, inteligência artificial aplicada, MODOX, MuralPlay, 360social, Arbor Labs">
+<link rel="canonical" href="https://arborlabs.com.br/">
+<meta name="robots" content="index, follow">
+<meta name="language" content="Portuguese">
+<meta name="geo.region" content="BR-SP">
+<meta name="geo.placename" content="São Paulo">
 <meta name="theme-color" content="#0F0D0A">
-<meta property="og:title" content="Arbor Labs — estúdio brasileiro de produtos digitais">
-<meta property="og:description" content="Produtos próprios no ar e desenvolvimento sob medida. Software que aguenta o mundo real.">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arbor Labs">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Arbor Labs — desenvolvedora de software: produtos próprios e sob medida">
+<meta property="og:description" content="Produtos próprios no ar — MODOX, MuralPlay e 360social — e desenvolvimento de software sob medida para quem precisa de um sistema feito do seu jeito.">
+<meta property="og:url" content="https://arborlabs.com.br/">
+<meta property="og:image" content="https://arborlabs.com.br/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Arbor Labs — desenvolvedora de software brasileira">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arbor Labs — desenvolvedora de software: produtos próprios e sob medida">
+<meta name="twitter:description" content="Produtos próprios no ar e desenvolvimento sob medida. Software que aguenta o mundo real.">
+<meta name="twitter:image" content="https://arborlabs.com.br/og.png">
+
 <link rel="icon" href="marca/arbor-symbol-laranja.svg">
+<link rel="apple-touch-icon" href="marca/arbor-symbol-laranja.svg">
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfessionalService",
+"name":"Arbor Labs",
+"alternateName":"ARBOR LABS",
+"description":"Desenvolvedora de software brasileira especialista em produtos próprios e em desenvolvimento de software sob medida para empresas e instituições.",
+"url":"https://arborlabs.com.br/",
+"logo":"https://arborlabs.com.br/marca/arbor-symbol-laranja.svg",
+"image":"https://arborlabs.com.br/og.png",
+"email":"contato@arborlabs.com.br",
+"areaServed":"BR",
+"address":{"@type":"PostalAddress","addressRegion":"SP","addressCountry":"BR"},
+"knowsAbout":["Desenvolvimento de software sob medida","Software house","Plataformas web e mobile","Inteligência artificial aplicada","Infraestrutura e segurança de dados"],
+"makesOffer":[
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Desenvolvimento de software sob medida","description":"Sistemas internos, portais, automação de processo e produtos digitais construídos do zero para empresas e instituições."}},
+  {"@type":"Offer","itemOffered":{"@type":"Service","name":"Inteligência artificial aplicada","description":"Assistentes, classificação de documentos e automação de atendimento com modelos de linguagem."}},
+  {"@type":"Offer","itemOffered":{"@type":"SoftwareApplication","name":"MODOX","applicationCategory":"EducationalApplication","url":"https://plataformax.pages.dev"}},
+  {"@type":"Offer","itemOffered":{"@type":"SoftwareApplication","name":"MuralPlay","applicationCategory":"BusinessApplication","url":"https://muralplay.com.br"}},
+  {"@type":"Offer","itemOffered":{"@type":"SoftwareApplication","name":"360social","applicationCategory":"BusinessApplication","url":"https://360social.com.br"}}
+]}
+</script>
 <style>
 :root{
   --lar:#F26A1B; --lar-esc:#C8500C; --lar-clr:#FFF1E6; --lar-luz:#FF8A47;
@@ -89,8 +131,9 @@ h2 em{font-style:normal;color:var(--lar)}
 h3{font-size:21px;letter-spacing:-.022em;font-weight:750;color:#fff}
 
 /* ---------- produtos ---------- */
-.produtos{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:52px}
-@media(max-width:860px){ .produtos{grid-template-columns:1fr} }
+.produtos{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
+@media(max-width:1060px){ .produtos{grid-template-columns:1fr 1fr} }
+@media(max-width:640px){ .produtos{grid-template-columns:1fr} }
 .pr{background:var(--preto2);border:1px solid var(--linha);border-radius:var(--r-xl);
   padding:38px 36px 34px;position:relative;overflow:hidden;transition:.2s;display:flex;flex-direction:column}
 .pr:hover{border-color:#3A342C;transform:translateY(-3px);box-shadow:var(--sh2)}
@@ -198,6 +241,10 @@ footer{padding:56px 0 64px;border-top:1px solid var(--linha)}
     <rect x="14" y="24" width="104" height="72" rx="12" fill="none" stroke="#F26A1B" stroke-width="9"/>
     <polygon points="57,42 57,78 89,60" fill="#F8F6F2"/>
   </symbol>
+  <symbol id="social360" viewBox="-60 -60 120 120">
+    <path d="M13.46,-50.23 A52.00,52.00 0 0 1 50.23,13.46 L38.64,10.35 A40.00,40.00 0 0 0 10.35,-38.64 Z M36.77,36.77 A52.00,52.00 0 0 1 -36.77,36.77 L-28.28,28.28 A40.00,40.00 0 0 0 28.28,28.28 Z M-50.23,13.46 A52.00,52.00 0 0 1 -13.46,-50.23 L-10.35,-38.64 A40.00,40.00 0 0 0 -38.64,10.35 Z" fill="#F26A1B"/>
+    <circle cx="0" cy="0" r="16.64" fill="#F26A1B"/>
+  </symbol>
 </svg>
 
 <nav class="nav"><div class="nav-in">
@@ -214,11 +261,13 @@ footer{padding:56px 0 64px;border-top:1px solid var(--linha)}
 
 <!-- ══════════ HERÓI ══════════ -->
 <header class="hero"><div class="w">
-  <div class="selo">🇧🇷 Estúdio de produto brasileiro</div>
+  <div class="selo">🇧🇷 Desenvolvedora de software brasileira</div>
   <h1>Software que aguenta o <em>mundo real</em>.</h1>
-  <p class="lead">A Arbor Labs constrói produtos digitais — os nossos e os de quem nos procura.
-    Plataformas, sistemas sob medida e inteligência artificial aplicada, feitos para durar anos
-    em produção, não para impressionar numa demonstração de quinze minutos.</p>
+  <p class="lead">A Arbor Labs é uma desenvolvedora de software especialista em dois tipos de
+    trabalho: produtos próprios que já estão no ar — MODOX, MuralPlay e 360social — e
+    desenvolvimento sob medida para empresas e instituições que precisam de um sistema, um
+    aplicativo ou uma plataforma feita do jeito delas. Mesmo padrão de engenharia nos dois casos,
+    feito para durar anos em produção, não para impressionar numa demonstração de quinze minutos.</p>
   <div class="acoes">
     <a class="btn" href="#produtos">Ver o que já está no ar</a>
     <a class="btn g" href="#contato">Tenho um projeto</a>
@@ -226,7 +275,7 @@ footer{padding:56px 0 64px;border-top:1px solid var(--linha)}
 </div></header>
 
 <div class="fatos"><div class="w"><div class="fatos-in">
-  <div class="fa"><b><em>2</em> produtos</b><span>próprios, no ar, usados todo dia por gente de verdade</span></div>
+  <div class="fa"><b><em>3</em> produtos</b><span>próprios, no ar, usados todo dia por gente de verdade</span></div>
   <div class="fa"><b>São Paulo</b><span>onde ficam os servidores e os dados de quem confia na gente</span></div>
   <div class="fa"><b>LGPD</b><span>tratada como projeto de engenharia, não como aviso de rodapé</span></div>
   <div class="fa"><b><em>100%</em> Brasil</b><span>construído aqui, em português, para o jeito que se trabalha aqui</span></div>
@@ -265,15 +314,31 @@ footer{padding:56px 0 64px;border-top:1px solid var(--linha)}
         <span>Pareamento por 6 dígitos</span><span>Funciona no navegador da TV</span></div>
       <a class="ir" href="https://muralplay.com.br" target="_blank" rel="noopener">Conhecer o MuralPlay →</a>
     </article>
+
+    <article class="pr">
+      <div class="cat">Assistência social</div>
+      <div class="logo-pr"><svg viewBox="-60 -60 120 120" style="width:28px;height:28px"><use href="#social360"/></svg>
+        <span class="txt">360<i>social</i></span></div>
+      <p>Gestão de atendimento e impacto social para instituições de verdade. Identifica quem
+        chegou, registra o atendimento num prontuário em linha do tempo, acompanha presença em
+        tempo real, controla doações e monta o relatório que a instituição precisa mostrar —
+        para mantenedor, prefeitura ou conselho.</p>
+      <div class="tags"><span>Prontuário em linha do tempo</span><span>Presença em tempo real</span>
+        <span>Doações e relatórios</span><span>Mural de impacto</span></div>
+      <a class="ir" href="https://360social.com.br" target="_blank" rel="noopener">Conhecer o 360social →</a>
+    </article>
   </div>
 </div></section>
 
 <!-- ══════════ SERVIÇOS ══════════ -->
 <section class="servicos" id="servicos"><div class="w">
-  <div class="eyebrow">O que fazemos para clientes</div>
+  <div class="eyebrow">Desenvolvimento sob medida para terceiros</div>
   <h2>Também construímos <em>o produto de outra pessoa</em>.</h2>
-  <p class="sub">O mesmo padrão que sustenta os nossos produtos fica disponível para quem tem uma
-    ideia, um processo emperrado ou um sistema antigo que já não acompanha o tamanho da operação.</p>
+  <p class="sub">Além de manter MODOX, MuralPlay e 360social no ar, a Arbor Labs desenvolve
+    software sob encomenda para empresas, escolas, clínicas e instituições que precisam de um
+    sistema próprio. O mesmo padrão de engenharia que sustenta os nossos produtos fica disponível
+    para quem tem uma ideia, um processo emperrado ou um sistema antigo que já não acompanha o
+    tamanho da operação.</p>
 
   <div class="grade-sv">
     <div class="sv">
@@ -410,6 +475,7 @@ footer{padding:56px 0 64px;border-top:1px solid var(--linha)}
       <a class="li" href="https://plataformax.pages.dev" target="_blank" rel="noopener">MODOX — ensino</a>
       <a class="li" href="https://muralplay.com.br" target="_blank" rel="noopener">MuralPlay — mural para TV</a>
       <a class="li" href="https://play.google.com/store/apps/details?id=br.com.muralplay.tv" target="_blank" rel="noopener">MuralPlay no Google Play</a>
+      <a class="li" href="https://360social.com.br" target="_blank" rel="noopener">360social — atendimento e impacto social</a>
     </div>
     <div>
       <h4>Arbor</h4>
