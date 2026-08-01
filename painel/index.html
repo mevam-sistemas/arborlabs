@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel Central — Arbor Labs</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root{
+    --bg:#faf7f4; --card:#fff; --ink:#1a1a1a; --muted:#6b6b6b; --muted2:#9a9a9a;
+    --line:#eee; --orange:#c05621; --orange2:#e08a4c; --ok:#2f855a; --ok-bg:#e8f5ee;
+    --warn:#b7791f; --warn-bg:#fff8e6; --bad:#c53030; --bad-bg:#fdeeee;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  header{padding:32px 24px 8px;max-width:1000px;margin:0 auto;}
+  header h1{font-size:26px;margin:0 0 4px;}
+  header p{color:var(--muted);margin:0;font-size:14px;}
+  main{max-width:1000px;margin:0 auto;padding:24px;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px;}
+  .card h2{font-size:17px;margin:0;display:flex;align-items:center;gap:8px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0;}
+  .dot.on{background:var(--ok);}
+  .dot.off{background:var(--bad);}
+  .card .sub{color:var(--muted);font-size:12.5px;margin-top:-8px;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .stat{background:var(--bg);border-radius:10px;padding:10px 12px;}
+  .stat .n{font-size:22px;font-weight:700;line-height:1.1;}
+  .stat .l{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .stat.pagando .n{color:var(--ok);}
+  .stat.vencido .n{color:var(--bad);}
+  .stat.trial .n{color:var(--warn);}
+  button{cursor:pointer;border:none;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;font-family:inherit;}
+  .btn-primary{background:var(--orange);color:#fff;}
+  .btn-primary:hover{background:#a1481a;}
+  .btn-primary:disabled{background:var(--muted2);cursor:default;}
+  input[type=email]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;}
+  .msg{font-size:12.5px;color:var(--muted);min-height:16px;}
+  .msg.err{color:var(--bad);}
+  .msg.ok{color:var(--ok);}
+  footer{max-width:1000px;margin:0 auto;padding:8px 24px 40px;color:var(--muted2);font-size:12px;}
+  .loading{color:var(--muted2);font-size:13px;padding:20px 0;text-align:center;}
+  .gate{max-width:420px;margin:80px auto;padding:32px;background:var(--card);border:1px solid var(--line);border-radius:16px;text-align:center;}
+  .gate h1{font-size:20px;margin:0 0 8px;}
+  .gate p{color:var(--muted);font-size:13.5px;margin:0 0 20px;}
+  .hide{display:none !important;}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h1>Painel Central — Arbor Labs</h1>
+  <p>Acesso restrito. Entre com o e-mail cadastrado.</p>
+  <input type="email" id="gateEmail" placeholder="seu e-mail" style="margin-bottom:10px">
+  <button class="btn-primary" id="gateBtn" style="width:100%">Enviar link de acesso</button>
+  <div class="msg" id="gateMsg"></div>
+</div>
+
+<div id="app" class="hide">
+<header>
+  <h1>Painel Central — Arbor Labs</h1>
+  <p>Clientes ativos em cada plataforma, num lugar só.</p>
+</header>
+<main>
+
+  <section class="card" id="cardModox">
+    <h2><span class="dot" id="dotModox"></span> MODOX</h2>
+    <div class="sub">Escolas — assinatura mensal</div>
+    <div class="loading" id="loadModox">Carregando…</div>
+    <div class="stat-grid hide" id="statsModox"></div>
+  </section>
+
+  <section class="card" id="cardSocial">
+    <h2><span class="dot" id="dotSocial"></span> 360social</h2>
+    <div class="sub">Instituições — assinatura mensal</div>
+    <div class="loading" id="loadSocial">Carregando…</div>
+    <div class="stat-grid hide" id="statsSocial"></div>
+  </section>
+
+  <section class="card" id="cardMural">
+    <h2><span class="dot" id="dotMural"></span> MuralPlay</h2>
+    <div class="sub">Telas — freemium + planos pagos</div>
+    <div id="muralLoginBox">
+      <button class="btn-primary" id="muralLoginBtn" style="width:100%">Entrar com Google</button>
+      <div class="msg" id="muralMsg">Precisa ser a conta administradora do MuralPlay.</div>
+    </div>
+    <div class="loading hide" id="loadMural">Carregando…</div>
+    <div class="stat-grid hide" id="statsMural"></div>
+  </section>
+
+</main>
+<footer>Arbor Labs · uso interno · painel.arborlabs.com.br</footer>
+</div>
+
+<!-- Supabase (MODOX + 360social, mesmo projeto) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Firebase (MuralPlay) -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA6qyguM8hMvT9u-WULoIq_TLHweSfo3tg",
+  authDomain: "ibira-sinal.firebaseapp.com",
+  databaseURL: "https://ibira-sinal-default-rtdb.firebaseio.com",
+  projectId: "ibira-sinal",
+  storageBucket: "ibira-sinal.firebasestorage.app",
+  messagingSenderId: "533598216345",
+  appId: "1:533598216345:web:5675a2909155defa0e1808"
+};
+const fbApp = initializeApp(firebaseConfig);
+const fbAuth = getAuth(fbApp);
+const fbDb = getDatabase(fbApp);
+const MASTER_UIDS = ['yvxdk3DeKZYN8oRm16y72phCV202'];
+const PAGOS = ['essencial','plus','completo'];
+
+window.__muralLogin = async () => {
+  try{
+    await signInWithPopup(fbAuth, new GoogleAuthProvider());
+  }catch(e){
+    document.getElementById('muralMsg').textContent = 'Não foi possível entrar: ' + (e.message||e);
+    document.getElementById('muralMsg').classList.add('err');
+  }
+};
+
+onAuthStateChanged(fbAuth, async (user) => {
+  const loginBox = document.getElementById('muralLoginBox');
+  const loading = document.getElementById('loadMural');
+  const stats = document.getElementById('statsMural');
+  const dot = document.getElementById('dotMural');
+
+  if(!user){ loginBox.classList.remove('hide'); loading.classList.add('hide'); stats.classList.add('hide'); dot.className='dot off'; return; }
+  if(!MASTER_UIDS.includes(user.uid)){
+    document.getElementById('muralMsg').textContent = 'Essa conta Google não é a conta administradora do MuralPlay.';
+    document.getElementById('muralMsg').classList.add('err');
+    dot.className='dot off';
+    return;
+  }
+
+  loginBox.classList.add('hide');
+  loading.classList.remove('hide');
+  try{
+    const snap = await get(ref(fbDb, 'tenants'));
+    const all = snap.exists() ? snap.val() : {};
+    const clientes = Object.entries(all).filter(([uid]) => !MASTER_UIDS.includes(uid));
+    const total = clientes.length;
+    let pagando = 0, vencido = 0;
+    const now = Date.now();
+    for(const [, data] of clientes){
+      const pf = data.profile || {};
+      const ativo = PAGOS.includes(pf.plan) && pf.activeUntil && pf.activeUntil > now;
+      if(ativo) pagando++;
+      else if(pf.plan && PAGOS.includes(pf.plan)) vencido++; // teve plano pago, venceu
+    }
+    const gratis = total - pagando - vencido;
+    stats.innerHTML = `
+      <div class="stat"><div class="n">${total}</div><div class="l">Total de contas</div></div>
+      <div class="stat pagando"><div class="n">${pagando}</div><div class="l">Plano pago ativo</div></div>
+      <div class="stat vencido"><div class="n">${vencido}</div><div class="l">Plano pago vencido</div></div>
+      <div class="stat"><div class="n">${gratis}</div><div class="l">No plano grátis</div></div>
+    `;
+    loading.classList.add('hide');
+    stats.classList.remove('hide');
+    dot.className = 'dot on';
+  }catch(e){
+    loading.textContent = 'Não foi possível carregar: ' + (e.message||e);
+    dot.className='dot off';
+  }
+});
+
+document.getElementById('muralLoginBtn').addEventListener('click', () => window.__muralLogin());
+</script>
+
+<script>
+// ---- Supabase (MODOX + 360social — mesmo projeto, schemas diferentes) ----
+const SB_URL = 'https://lshjtlzlywipxtfwbxxe.supabase.co';
+const SB_KEY = 'sb_publishable_7-sR87eV6b4I8nx-k6Hriw_DEVprjfz';
+const sbPublic = supabase.createClient(SB_URL, SB_KEY); // schema public -> MODOX
+const sbSocial = supabase.createClient(SB_URL, SB_KEY, { db: { schema: 'social' } }); // 360social
+
+const gate = document.getElementById('gate');
+const app = document.getElementById('app');
+const gateMsg = document.getElementById('gateMsg');
+
+document.getElementById('gateBtn').addEventListener('click', async () => {
+  const email = document.getElementById('gateEmail').value.trim();
+  if(!email){ return; }
+  const btn = document.getElementById('gateBtn');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  const { error } = await sbPublic.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin } });
+  btn.disabled = false; btn.textContent = 'Enviar link de acesso';
+  if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
+  gateMsg.textContent = 'Link enviado — confira seu e-mail.';
+  gateMsg.className = 'msg ok';
+});
+
+async function carregarModox(){
+  const load = document.getElementById('loadModox');
+  const stats = document.getElementById('statsModox');
+  const dot = document.getElementById('dotModox');
+  try{
+    const { data, error } = await sbPublic.rpc('painel_resumo_escolas');
+    if(error) throw error;
+    render(stats, data, 'total_contas');
+    load.classList.add('hide'); stats.classList.remove('hide'); dot.className='dot on';
+  }catch(e){
+    load.textContent = 'Sem acesso ou erro: ' + (e.message||e);
+    dot.className='dot off';
+  }
+}
+
+async function carregarSocial(){
+  const load = document.getElementById('loadSocial');
+  const stats = document.getElementById('statsSocial');
+  const dot = document.getElementById('dotSocial');
+  try{
+    const { data, error } = await sbSocial.rpc('painel_resumo_instituicoes');
+    if(error) throw error;
+    render(stats, data, 'total_contas');
+    load.classList.add('hide'); stats.classList.remove('hide'); dot.className='dot on';
+  }catch(e){
+    load.textContent = 'Sem acesso ou erro: ' + (e.message||e);
+    dot.className='dot off';
+  }
+}
+
+function render(el, d, totalKey){
+  el.innerHTML = `
+    <div class="stat"><div class="n">${d[totalKey]}</div><div class="l">Total de contas</div></div>
+    <div class="stat pagando"><div class="n">${d.pagando}</div><div class="l">Pagando</div></div>
+    <div class="stat trial"><div class="n">${d.trial_ativo}</div><div class="l">Em teste (7 dias)</div></div>
+    <div class="stat vencido"><div class="n">${d.trial_vencido}</div><div class="l">Teste vencido</div></div>
+  `;
+}
+
+async function checarSessao(){
+  const { data: { session } } = await sbPublic.auth.getSession();
+  if(session){
+    gate.classList.add('hide');
+    app.classList.remove('hide');
+    carregarModox();
+    carregarSocial();
+  }
+}
+
+sbPublic.auth.onAuthStateChange((event, session) => {
+  if(session){
+    gate.classList.add('hide');
+    app.classList.remove('hide');
+    carregarModox();
+    carregarSocial();
+  }
+});
+
+checarSessao();
+</script>
+
+</body>
+</html>
