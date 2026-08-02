@@ -46,6 +46,22 @@
   .gate h1{font-size:20px;margin:0 0 8px;}
   .gate p{color:var(--muted);font-size:13.5px;margin:0 0 20px;}
   .hide{display:none !important;}
+  .toggle-lista{background:none;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font-size:12.5px;font-weight:600;width:100%;border-radius:10px;}
+  .toggle-lista:hover{background:var(--bg);}
+  .lista{margin-top:2px;max-height:340px;overflow-y:auto;}
+  .cliente-row{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .cliente-row:last-child{border-bottom:none;}
+  .cliente-info{flex:1;min-width:0;}
+  .cliente-nome{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cliente-email{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cliente-uso{width:52px;text-align:right;color:var(--muted);font-size:11.5px;flex-shrink:0;}
+  .badge{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;background:var(--bg);color:var(--muted);}
+  .badge.pagando{background:var(--ok-bg);color:var(--ok);}
+  .badge.trial{background:var(--warn-bg);color:var(--warn);}
+  .badge.vencido{background:var(--bad-bg);color:var(--bad);}
+  .btn-wa{background:var(--ok-bg);color:var(--ok);font-size:11px;font-weight:700;padding:6px 9px;border-radius:8px;text-decoration:none;flex-shrink:0;white-space:nowrap;}
+  .btn-wa:hover{background:#d5ede0;}
+  .btn-wa.off{color:var(--muted2);background:var(--bg);}
 </style>
 </head>
 <body>
@@ -76,6 +92,8 @@
     <div class="sub">Escolas — assinatura mensal</div>
     <div class="loading" id="loadModox">Carregando…</div>
     <div class="stat-grid hide" id="statsModox"></div>
+    <button class="toggle-lista hide" id="toggleModox">Ver lista de clientes</button>
+    <div class="lista hide" id="listModox"></div>
   </section>
 
   <section class="card" id="cardSocial">
@@ -83,6 +101,8 @@
     <div class="sub">Instituições — assinatura mensal</div>
     <div class="loading" id="loadSocial">Carregando…</div>
     <div class="stat-grid hide" id="statsSocial"></div>
+    <button class="toggle-lista hide" id="toggleSocial">Ver lista de clientes</button>
+    <div class="lista hide" id="listSocial"></div>
   </section>
 
   <section class="card" id="cardMural">
@@ -94,11 +114,62 @@
     </div>
     <div class="loading hide" id="loadMural">Carregando…</div>
     <div class="stat-grid hide" id="statsMural"></div>
+    <button class="toggle-lista hide" id="toggleMural">Ver lista de clientes</button>
+    <div class="lista hide" id="listMural"></div>
   </section>
 
 </main>
 <footer>Arbor Labs · uso interno · painel.arborlabs.com.br</footer>
 </div>
+
+<script>
+// ---- Helpers compartilhados: lista de clientes (nome, e-mail, status, % uso, WhatsApp) ----
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function waLink(tel){
+  let d = String(tel||'').replace(/\D/g,'');
+  if(!d) return null;
+  if(!d.startsWith('55')) d = '55' + d;
+  return 'https://wa.me/' + d;
+}
+function statusBadge(status){
+  const map = {
+    pagando: {label:'Em dia', cls:'pagando'},
+    trial: {label:'Testando', cls:'trial'},
+    vencido: {label:'Vencido', cls:'vencido'},
+    gratis: {label:'Grátis', cls:''},
+  };
+  const m = map[status] || {label:'—', cls:''};
+  return `<span class="badge ${m.cls}">${esc(m.label)}</span>`;
+}
+function renderLista(el, rows){
+  if(!rows.length){ el.innerHTML = '<div class="msg">Nenhum cliente ainda.</div>'; return; }
+  el.innerHTML = rows.map(r => `
+    <div class="cliente-row">
+      <div class="cliente-info">
+        <div class="cliente-nome">${esc(r.nome||'(sem nome)')}</div>
+        <div class="cliente-email">${esc(r.email||'')}</div>
+      </div>
+      <div class="cliente-uso">${esc(r.usoTexto||'—')}</div>
+      ${statusBadge(r.status)}
+      ${r.wa ? `<a class="btn-wa" href="${esc(r.wa)}" target="_blank" rel="noopener">WhatsApp</a>` : '<span class="btn-wa off">sem tel.</span>'}
+    </div>
+  `).join('');
+}
+function setupLista(key, rows){
+  const list = document.getElementById('list'+key);
+  const toggle = document.getElementById('toggle'+key);
+  if(!list || !toggle) return;
+  renderLista(list, rows);
+  list.classList.add('hide');
+  toggle.textContent = 'Ver lista de clientes (' + rows.length + ')';
+  toggle.classList.remove('hide');
+  toggle.onclick = () => {
+    list.classList.toggle('hide');
+    const showing = !list.classList.contains('hide');
+    toggle.textContent = (showing ? 'Ocultar' : 'Ver') + ' lista de clientes (' + rows.length + ')';
+  };
+}
+</script>
 
 <!-- Supabase (MODOX + 360social, mesmo projeto) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -155,11 +226,30 @@ onAuthStateChanged(fbAuth, async (user) => {
     const total = clientes.length;
     let pagando = 0, vencido = 0;
     const now = Date.now();
+    const rows = [];
     for(const [, data] of clientes){
       const pf = data.profile || {};
       const ativo = PAGOS.includes(pf.plan) && pf.activeUntil && pf.activeUntil > now;
-      if(ativo) pagando++;
-      else if(pf.plan && PAGOS.includes(pf.plan)) vencido++; // teve plano pago, venceu
+      let status;
+      if(ativo){ pagando++; status = 'pagando'; }
+      else if(pf.plan && PAGOS.includes(pf.plan)){ vencido++; status = 'vencido'; } // teve plano pago, venceu
+      else { status = 'gratis'; }
+
+      const planKey = ativo ? pf.plan : 'gratis';
+      const planInfo = PLANS[planKey] || PLANS.gratis;
+      const telasUsadas = data.channels ? Object.values(data.channels).reduce((s,c)=>s+((c.screens&&c.screens.length)||0),0) : 0;
+      const bytesUsados = data.content ? Object.values(data.content).reduce((s,it)=>s+(it.sizeBytes||0),0) : 0;
+      const pctTelas = planInfo.telas ? Math.round(telasUsadas/planInfo.telas*100) : 0;
+      const pctStorage = planInfo.storageMB ? Math.round((bytesUsados/1024/1024)/planInfo.storageMB*100) : 0;
+      const pct = Math.max(pctTelas, pctStorage);
+
+      rows.push({
+        nome: pf.negocio || pf.nome || '',
+        email: pf.email || '',
+        status,
+        usoTexto: pct + '%',
+        wa: waLink(pf.telefone)
+      });
     }
     const gratis = total - pagando - vencido;
     stats.innerHTML = `
@@ -171,6 +261,10 @@ onAuthStateChanged(fbAuth, async (user) => {
     loading.classList.add('hide');
     stats.classList.remove('hide');
     dot.className = 'dot on';
+
+    const ordemStatus = {vencido:0, gratis:1, pagando:2};
+    rows.sort((a,b) => (ordemStatus[a.status]??3) - (ordemStatus[b.status]??3));
+    setupLista('Mural', rows);
   }catch(e){
     loading.textContent = 'Não foi possível carregar: ' + (e.message||e);
     dot.className='dot off';
@@ -251,10 +345,27 @@ async function carregarModox(){
     if(error) throw error;
     render(stats, data, 'total_contas');
     load.classList.add('hide'); stats.classList.remove('hide'); dot.className='dot on';
+    carregarListaModox();
   }catch(e){
     load.textContent = 'Sem acesso ou erro: ' + (e.message||e);
     dot.className='dot off';
   }
+}
+
+async function carregarListaModox(){
+  try{
+    const { data, error } = await sbPublic.rpc('painel_lista_escolas');
+    if(error) throw error;
+    const rows = (data||[]).map(e => ({
+      nome: e.nome,
+      email: e.admin_email,
+      status: (e.status === 'pagando' || e.status === 'trial' || e.status === 'vencido') ? e.status : 'sem_info',
+      // MODOX ainda não tem limite de plano cadastrado, então mostra alunos ativos em vez de %
+      usoTexto: e.alunos_ativos != null ? e.alunos_ativos + (e.alunos_ativos === 1 ? ' aluno' : ' alunos') : '—',
+      wa: waLink(e.admin_telefone)
+    }));
+    setupLista('Modox', rows);
+  }catch(e){ /* resumo já mostrou o erro, se houve */ }
 }
 
 async function carregarSocial(){
@@ -266,10 +377,26 @@ async function carregarSocial(){
     if(error) throw error;
     render(stats, data, 'total_contas');
     load.classList.add('hide'); stats.classList.remove('hide'); dot.className='dot on';
+    carregarListaSocial();
   }catch(e){
     load.textContent = 'Sem acesso ou erro: ' + (e.message||e);
     dot.className='dot off';
   }
+}
+
+async function carregarListaSocial(){
+  try{
+    const { data, error } = await sbSocial.rpc('painel_lista_instituicoes');
+    if(error) throw error;
+    const rows = (data||[]).map(i => ({
+      nome: i.nome,
+      email: i.email,
+      status: (i.status === 'pagando' || i.status === 'trial' || i.status === 'vencido') ? i.status : 'sem_info',
+      usoTexto: i.uso_percentual != null ? i.uso_percentual + '%' : '—',
+      wa: waLink(i.telefone)
+    }));
+    setupLista('Social', rows);
+  }catch(e){ /* resumo já mostrou o erro, se houve */ }
 }
 
 function render(el, d, totalKey){
