@@ -62,6 +62,9 @@
   .btn-wa{background:var(--ok-bg);color:var(--ok);font-size:11px;font-weight:700;padding:6px 9px;border-radius:8px;text-decoration:none;flex-shrink:0;white-space:nowrap;}
   .btn-wa:hover{background:#d5ede0;}
   .btn-wa.off{color:var(--muted2);background:var(--bg);}
+  .btn-suporte{background:var(--bg);color:var(--ink);border:1px solid var(--line);font-size:11px;font-weight:700;padding:6px 9px;border-radius:8px;flex-shrink:0;white-space:nowrap;cursor:pointer;}
+  .btn-suporte:hover{background:var(--line);}
+  .btn-suporte:disabled{opacity:.6;cursor:default;}
 </style>
 </head>
 <body>
@@ -141,9 +144,39 @@ function statusBadge(status){
   const m = map[status] || {label:'—', cls:''};
   return `<span class="badge ${m.cls}">${esc(m.label)}</span>`;
 }
-function renderLista(el, rows){
+// Acesso de suporte (02/08/2026): pedido do Israel — poder entrar em
+// qualquer conta de cliente do MODOX/360social, vendo e mexendo como se
+// fosse o próprio cliente, direto do painel. Usa a Edge Function
+// painel-acesso-suporte, que gera um link de login de uso único (sem
+// nunca envolver a senha do cliente) e abre numa aba nova. MuralPlay fica
+// de fora por enquanto — é outro sistema de login (Firebase/Google).
+async function entrarComoSuporte(produto, email, btn){
+  if(!email){ return; }
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Abrindo…';
+  try{
+    const { data: { session } } = await sbPublic.auth.getSession();
+    const r = await fetch(SB_URL + '/functions/v1/painel-acesso-suporte', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (session && session.access_token || ''),
+        'apikey': SB_KEY,
+      },
+      body: JSON.stringify({ produto, email }),
+    });
+    const out = await r.json();
+    if(!r.ok || !out.link){ throw new Error(out.error || ('erro ' + r.status)); }
+    window.open(out.link, '_blank');
+  }catch(e){
+    alert('Não consegui entrar como esse cliente: ' + (e.message||e));
+  }finally{
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+function renderLista(el, rows, produto){
   if(!rows.length){ el.innerHTML = '<div class="msg">Nenhum cliente ainda.</div>'; return; }
-  el.innerHTML = rows.map(r => `
+  el.innerHTML = rows.map((r,i) => `
     <div class="cliente-row">
       <div class="cliente-info">
         <div class="cliente-nome">${esc(r.nome||'(sem nome)')}</div>
@@ -152,14 +185,21 @@ function renderLista(el, rows){
       <div class="cliente-uso">${esc(r.usoTexto||'—')}</div>
       ${statusBadge(r.status)}
       ${r.wa ? `<a class="btn-wa" href="${esc(r.wa)}" target="_blank" rel="noopener">WhatsApp</a>` : '<span class="btn-wa off">sem tel.</span>'}
+      ${produto && r.email ? `<button type="button" class="btn-suporte" data-i="${i}">Entrar como cliente</button>` : ''}
     </div>
   `).join('');
+  if(produto){
+    el.querySelectorAll('.btn-suporte').forEach(btn => {
+      const r = rows[Number(btn.dataset.i)];
+      btn.onclick = () => entrarComoSuporte(produto, r.email, btn);
+    });
+  }
 }
-function setupLista(key, rows){
+function setupLista(key, rows, produto){
   const list = document.getElementById('list'+key);
   const toggle = document.getElementById('toggle'+key);
   if(!list || !toggle) return;
-  renderLista(list, rows);
+  renderLista(list, rows, produto);
   list.classList.add('hide');
   toggle.textContent = 'Ver lista de clientes (' + rows.length + ')';
   toggle.classList.remove('hide');
@@ -366,7 +406,7 @@ async function carregarListaModox(){
         : (e.alunos_ativos != null ? e.alunos_ativos + (e.alunos_ativos === 1 ? ' aluno' : ' alunos') : '—'),
       wa: waLink(e.admin_telefone)
     }));
-    setupLista('Modox', rows);
+    setupLista('Modox', rows, 'modox');
   }catch(e){ /* resumo já mostrou o erro, se houve */ }
 }
 
@@ -397,7 +437,7 @@ async function carregarListaSocial(){
       usoTexto: i.uso_percentual != null ? i.uso_percentual + '%' : '—',
       wa: waLink(i.telefone)
     }));
-    setupLista('Social', rows);
+    setupLista('Social', rows, '360social');
   }catch(e){ /* resumo já mostrou o erro, se houve */ }
 }
 
