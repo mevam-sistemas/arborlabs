@@ -34,7 +34,9 @@
   .btn-primary{background:var(--orange);color:#fff;}
   .btn-primary:hover{background:#a1481a;}
   .btn-primary:disabled{background:var(--muted2);cursor:default;}
-  input[type=email]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;}
+  input[type=email],input[type=password]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;}
+  .gate a{color:var(--orange);font-size:12.5px;text-decoration:none;}
+  .gate a:hover{text-decoration:underline;}
   .msg{font-size:12.5px;color:var(--muted);min-height:16px;}
   .msg.err{color:var(--bad);}
   .msg.ok{color:var(--ok);}
@@ -50,12 +52,14 @@
 
 <div id="gate" class="gate">
   <h1>Painel Central — Arbor Labs</h1>
-  <p>Acesso restrito. Entre com o e-mail cadastrado.</p>
-  <input type="email" id="gateEmail" placeholder="seu e-mail" style="margin-bottom:10px">
-  <button class="btn-primary" id="gateBtn" style="width:100%">Enviar código de acesso</button>
-  <div id="gateCodeBox" class="hide" style="margin-top:14px">
-    <input type="text" id="gateCode" placeholder="código recebido por e-mail" inputmode="numeric" autocomplete="one-time-code" style="margin-bottom:10px">
-    <button class="btn-primary" id="gateCodeBtn" style="width:100%">Confirmar código</button>
+  <p>Acesso restrito. Entre com e-mail e senha.</p>
+  <input type="email" id="gateEmail" placeholder="seu e-mail" autocomplete="username" style="margin-bottom:10px">
+  <input type="password" id="gatePassword" placeholder="sua senha" autocomplete="current-password" style="margin-bottom:10px">
+  <button class="btn-primary" id="gateBtn" style="width:100%">Entrar</button>
+  <p style="margin:12px 0 0"><a href="#" id="gateForgot">Esqueci minha senha</a></p>
+  <div id="gateNewPassBox" class="hide" style="margin-top:14px">
+    <input type="password" id="gateNewPassword" placeholder="nova senha (mín. 6 caracteres)" autocomplete="new-password" style="margin-bottom:10px">
+    <button class="btn-primary" id="gateNewPassBtn" style="width:100%">Definir nova senha</button>
   </div>
   <div class="msg" id="gateMsg"></div>
 </div>
@@ -189,34 +193,53 @@ const gateMsg = document.getElementById('gateMsg');
 
 document.getElementById('gateBtn').addEventListener('click', async () => {
   const email = document.getElementById('gateEmail').value.trim();
-  if(!email){ return; }
+  const password = document.getElementById('gatePassword').value;
+  if(!email || !password){ return; }
   const btn = document.getElementById('gateBtn');
-  btn.disabled = true; btn.textContent = 'Enviando…';
-  const { error } = await sbPublic.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin } });
-  btn.disabled = false; btn.textContent = 'Enviar código de acesso';
-  if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
-  document.getElementById('gateCodeBox').classList.remove('hide');
-  document.getElementById('gateEmail').disabled = true;
-  gateMsg.textContent = 'Enviamos um código pro seu e-mail — cole ele acima e confirme (ou clique no link, se preferir).';
-  gateMsg.className = 'msg ok';
-  document.getElementById('gateCode').focus();
-});
-
-document.getElementById('gateCodeBtn').addEventListener('click', async () => {
-  const email = document.getElementById('gateEmail').value.trim();
-  const token = document.getElementById('gateCode').value.trim();
-  if(!email || !token){ return; }
-  const btn = document.getElementById('gateCodeBtn');
-  btn.disabled = true; btn.textContent = 'Confirmando…';
-  const { error } = await sbPublic.auth.verifyOtp({ email, token, type: 'email' });
-  btn.disabled = false; btn.textContent = 'Confirmar código';
+  btn.disabled = true; btn.textContent = 'Entrando…';
+  const { error } = await sbPublic.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Entrar';
   if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
   gateMsg.textContent = '';
   // onAuthStateChange cuida de esconder o gate e mostrar o painel
 });
 
-document.getElementById('gateCode').addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){ document.getElementById('gateCodeBtn').click(); }
+document.getElementById('gatePassword').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ document.getElementById('gateBtn').click(); }
+});
+
+document.getElementById('gateForgot').addEventListener('click', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('gateEmail').value.trim();
+  if(!email){ gateMsg.textContent = 'Digite seu e-mail no campo acima primeiro.'; gateMsg.className = 'msg err'; return; }
+  const link = document.getElementById('gateForgot');
+  const original = link.textContent;
+  link.textContent = 'Enviando…';
+  const { error } = await sbPublic.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+  link.textContent = original;
+  if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
+  gateMsg.textContent = 'Enviamos um link pro seu e-mail — abra ele nesse mesmo navegador pra definir uma senha nova.';
+  gateMsg.className = 'msg ok';
+});
+
+document.getElementById('gateNewPassBtn').addEventListener('click', async () => {
+  const newPassword = document.getElementById('gateNewPassword').value;
+  if(!newPassword || newPassword.length < 6){ gateMsg.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; gateMsg.className = 'msg err'; return; }
+  const btn = document.getElementById('gateNewPassBtn');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  const { error } = await sbPublic.auth.updateUser({ password: newPassword });
+  btn.disabled = false; btn.textContent = 'Definir nova senha';
+  if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
+  gateMsg.textContent = 'Senha definida! Entrando…';
+  gateMsg.className = 'msg ok';
+  gate.classList.add('hide');
+  app.classList.remove('hide');
+  carregarModox();
+  carregarSocial();
+});
+
+document.getElementById('gateNewPassword').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ document.getElementById('gateNewPassBtn').click(); }
 });
 
 async function carregarModox(){
@@ -259,6 +282,7 @@ function render(el, d, totalKey){
 }
 
 async function checarSessao(){
+  if(window.location.hash.includes('type=recovery')) return; // fluxo de nova senha assume daqui
   const { data: { session } } = await sbPublic.auth.getSession();
   if(session){
     gate.classList.add('hide');
@@ -269,7 +293,13 @@ async function checarSessao(){
 }
 
 sbPublic.auth.onAuthStateChange((event, session) => {
-  if(session){
+  if(event === 'PASSWORD_RECOVERY'){
+    document.getElementById('gateNewPassBox').classList.remove('hide');
+    gateMsg.textContent = 'Digite sua nova senha abaixo.';
+    gateMsg.className = 'msg ok';
+    return;
+  }
+  if(event === 'SIGNED_IN' && session){
     gate.classList.add('hide');
     app.classList.remove('hide');
     carregarModox();
