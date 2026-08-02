@@ -49,9 +49,9 @@
   .toggle-lista{background:none;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font-size:12.5px;font-weight:600;width:100%;border-radius:10px;}
   .toggle-lista:hover{background:var(--bg);}
   .lista{margin-top:2px;max-height:340px;overflow-y:auto;}
-  .cliente-row{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .cliente-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:12.5px;}
   .cliente-row:last-child{border-bottom:none;}
-  .cliente-info{flex:1;min-width:0;}
+  .cliente-info{flex:1 1 100%;min-width:0;}
   .cliente-nome{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .cliente-email{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .cliente-uso{width:52px;text-align:right;color:var(--muted);font-size:11.5px;flex-shrink:0;}
@@ -185,7 +185,7 @@ function renderLista(el, rows, produto){
       <div class="cliente-uso">${esc(r.usoTexto||'—')}</div>
       ${statusBadge(r.status)}
       ${r.wa ? `<a class="btn-wa" href="${esc(r.wa)}" target="_blank" rel="noopener">WhatsApp</a>` : '<span class="btn-wa off">sem tel.</span>'}
-      ${produto && r.email ? `<button type="button" class="btn-suporte" data-i="${i}">Entrar como cliente</button>` : ''}
+      ${produto && r.email ? `<button type="button" class="btn-suporte" data-i="${i}">Suporte</button>` : ''}
     </div>
   `).join('');
   if(produto){
