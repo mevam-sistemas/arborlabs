@@ -360,8 +360,10 @@ async function carregarListaModox(){
       nome: e.nome,
       email: e.admin_email,
       status: (e.status === 'pagando' || e.status === 'trial' || e.status === 'vencido') ? e.status : 'sem_info',
-      // MODOX ainda não tem limite de plano cadastrado, então mostra alunos ativos em vez de %
-      usoTexto: e.alunos_ativos != null ? e.alunos_ativos + (e.alunos_ativos === 1 ? ' aluno' : ' alunos') : '—',
+      // % de uso só existe depois que a escola tem um plano contratado (teto por plano);
+      // em teste puro, ainda sem plano, mostra a contagem de alunos ativos.
+      usoTexto: e.uso_percentual != null ? e.uso_percentual + '%'
+        : (e.alunos_ativos != null ? e.alunos_ativos + (e.alunos_ativos === 1 ? ' aluno' : ' alunos') : '—'),
       wa: waLink(e.admin_telefone)
     }));
     setupLista('Modox', rows);
