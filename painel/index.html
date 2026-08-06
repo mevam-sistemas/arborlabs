@@ -122,7 +122,7 @@
   </section>
 
 </main>
-<footer>Arbor Labs · uso interno · painel.arborlabs.com.br</footer>
+<footer>Arbor Labs · uso interno · painel.arborlabs.com.br · v1.0.2</footer>
 </div>
 
 <script>
@@ -168,6 +168,14 @@ async function entrarComoSuporte(produto, email, btn){
     });
     const out = await r.json();
     if(!r.ok || !out.link){ throw new Error(out.error || ('erro ' + r.status)); }
+    if(social){
+      const link = new URL(out.link);
+      const retorno = link.searchParams.get('redirect_to') || '';
+      if(link.hostname !== 'qimjttthnvmyjeqqopbf.supabase.co'
+        || !retorno.startsWith('https://app.360social.com.br/')){
+        throw new Error('destino de suporte divergente; acesso bloqueado por segurança');
+      }
+    }
     window.open(out.link, '_blank');
   }catch(e){
     alert('Não consegui entrar como esse cliente: ' + (e.message||e));
