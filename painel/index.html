@@ -122,7 +122,7 @@
   </section>
 
 </main>
-<footer>Arbor Labs · uso interno · painel.arborlabs.com.br · v1.0.3</footer>
+<footer>Arbor Labs · uso interno · painel.arborlabs.com.br · v1.0.4</footer>
 </div>
 
 <script>
@@ -359,7 +359,13 @@ document.getElementById('gateForgot').addEventListener('click', async (e) => {
   const link = document.getElementById('gateForgot');
   const original = link.textContent;
   link.textContent = 'Enviando…';
-  const { error } = await sbPublic.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+  let error = null;
+  try{
+    const response = await fetch(SB_URL + '/functions/v1/recuperar-senha-arborlabs', {
+      method:'POST', headers:{'content-type':'application/json','apikey':SB_KEY,'authorization':'Bearer '+SB_KEY}, body:JSON.stringify({email})
+    });
+    if(!response.ok) error = new Error('Não foi possível solicitar o link agora.');
+  }catch(e){ error = e; }
   link.textContent = original;
   if(error){ gateMsg.textContent = 'Erro: ' + error.message; gateMsg.className = 'msg err'; return; }
   gateMsg.textContent = 'Enviamos um link pro seu e-mail — abra ele nesse mesmo navegador pra definir uma senha nova.';
