@@ -77,7 +77,7 @@
   <button class="btn-primary" id="gateBtn" style="width:100%">Entrar</button>
   <p style="margin:12px 0 0"><a href="#" id="gateForgot">Esqueci minha senha</a></p>
   <div id="gateNewPassBox" class="hide" style="margin-top:14px">
-    <input type="password" id="gateNewPassword" placeholder="nova senha (mín. 6 caracteres)" autocomplete="new-password" style="margin-bottom:10px">
+    <input type="password" id="gateNewPassword" minlength="10" placeholder="nova senha (mín. 10 caracteres)" autocomplete="new-password" style="margin-bottom:10px">
     <button class="btn-primary" id="gateNewPassBtn" style="width:100%">Definir nova senha</button>
   </div>
   <div class="msg" id="gateMsg"></div>
@@ -156,14 +156,15 @@ async function entrarComoSuporte(produto, email, btn){
   btn.disabled = true; btn.textContent = 'Abrindo…';
   try{
     const { data: { session } } = await sbPublic.auth.getSession();
-    const r = await fetch(SB_URL + '/functions/v1/painel-acesso-suporte', {
+    const social = produto === '360social';
+    const r = await fetch((social ? SOCIAL_API_URL : SB_URL) + '/functions/v1/painel-acesso-suporte', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + (session && session.access_token || ''),
-        'apikey': SB_KEY,
+        'apikey': social ? SOCIAL_API_KEY : SB_KEY,
       },
-      body: JSON.stringify({ produto, email }),
+      body: JSON.stringify(social ? { acao:'acesso', email } : { produto, email }),
     });
     const out = await r.json();
     if(!r.ok || !out.link){ throw new Error(out.error || ('erro ' + r.status)); }
@@ -211,7 +212,7 @@ function setupLista(key, rows, produto){
 }
 </script>
 
-<!-- Supabase (MODOX + 360social, mesmo projeto) -->
+<!-- Supabase do MODOX autentica o painel; cada produto mantém banco próprio. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <!-- Firebase (MuralPlay) -->
 <script type="module">
@@ -315,11 +316,12 @@ document.getElementById('muralLoginBtn').addEventListener('click', () => window.
 </script>
 
 <script>
-// ---- Supabase (MODOX + 360social — mesmo projeto, schemas diferentes) ----
+// ---- Autenticação central no MODOX; dados do 360social vêm do banco exclusivo. ----
 const SB_URL = 'https://lshjtlzlywipxtfwbxxe.supabase.co';
 const SB_KEY = 'sb_publishable_7-sR87eV6b4I8nx-k6Hriw_DEVprjfz';
 const sbPublic = supabase.createClient(SB_URL, SB_KEY); // schema public -> MODOX
-const sbSocial = supabase.createClient(SB_URL, SB_KEY, { db: { schema: 'social' } }); // 360social
+const SOCIAL_API_URL = 'https://qimjttthnvmyjeqqopbf.supabase.co';
+const SOCIAL_API_KEY = 'sb_publishable_xxI2uLcflZn7yhSysNhO7w_JkXgGTt1';
 
 const gate = document.getElementById('gate');
 const app = document.getElementById('app');
@@ -358,7 +360,7 @@ document.getElementById('gateForgot').addEventListener('click', async (e) => {
 
 document.getElementById('gateNewPassBtn').addEventListener('click', async () => {
   const newPassword = document.getElementById('gateNewPassword').value;
-  if(!newPassword || newPassword.length < 6){ gateMsg.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; gateMsg.className = 'msg err'; return; }
+  if(!newPassword || newPassword.length < 10){ gateMsg.textContent = 'A senha precisa ter pelo menos 10 caracteres.'; gateMsg.className = 'msg err'; return; }
   const btn = document.getElementById('gateNewPassBtn');
   btn.disabled = true; btn.textContent = 'Salvando…';
   const { error } = await sbPublic.auth.updateUser({ password: newPassword });
@@ -415,21 +417,29 @@ async function carregarSocial(){
   const stats = document.getElementById('statsSocial');
   const dot = document.getElementById('dotSocial');
   try{
-    const { data, error } = await sbSocial.rpc('painel_resumo_instituicoes');
-    if(error) throw error;
-    render(stats, data, 'total_contas');
+    const { data: { session } } = await sbPublic.auth.getSession();
+    const r = await fetch(SOCIAL_API_URL + '/functions/v1/painel-acesso-suporte', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+(session?.access_token||''),
+        'apikey':SOCIAL_API_KEY
+      },
+      body:JSON.stringify({acao:'dados'})
+    });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.error || ('erro '+r.status));
+    render(stats, data.resumo, 'total_contas');
     load.classList.add('hide'); stats.classList.remove('hide'); dot.className='dot on';
-    carregarListaSocial();
+    carregarListaSocial(data.lista);
   }catch(e){
     load.textContent = 'Sem acesso ou erro: ' + (e.message||e);
     dot.className='dot off';
   }
 }
 
-async function carregarListaSocial(){
+function carregarListaSocial(data){
   try{
-    const { data, error } = await sbSocial.rpc('painel_lista_instituicoes');
-    if(error) throw error;
     const rows = (data||[]).map(i => ({
       nome: i.nome,
       email: i.email,
