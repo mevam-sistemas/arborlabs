@@ -2,7 +2,7 @@
 
 ## Reposicionamento do site: software, infraestrutura e conectividade
 
-**Estado:** planejado.
+**Estado:** implementado; aguardando validação visual e publicação.
 
 ### Objetivo
 
@@ -52,4 +52,3 @@ oferecido.
 - Links dos produtos continuam levando ao domínio correto de cada plataforma.
 - Textos passam por revisão de ortografia, consistência de marca e moderação de alegações técnicas.
 - Layout é homologado em desktop e celular, com contraste, foco de teclado e alvos de toque adequados.
-
